@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SwiftDeliver — Kitui Map Demo</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--purple:#55139b;--purple2:#7416b7;--yellow:#ffc928;--green:#159447;--ink:#171323;--muted:#6e6878}
+*{box-sizing:border-box}body{margin:0;background:#f5f2f8;color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:linear-gradient(115deg,#3d0878,#6814a5);color:#fff;padding:20px 18px 18px}
+.brand{display:flex;align-items:center;gap:12px;font-size:27px;font-weight:850;letter-spacing:-1px}.brand span{color:var(--yellow)}
+.tag{font-size:13px;opacity:.9;margin:2px 0 0 54px}
+main{max-width:760px;margin:16px auto;padding:0 12px}
+.status{background:#e6f6ec;border:1px solid #c7ebd4;border-radius:16px;padding:13px 15px;margin-bottom:12px;display:flex;gap:10px;align-items:center}
+.dot{width:11px;height:11px;border-radius:50%;background:var(--green);flex:none}
+.panel{background:white;border-radius:18px;box-shadow:0 4px 18px #28113d12;overflow:hidden;margin-bottom:13px}
+#map{height:390px;width:100%;background:#e9e5ec}
+.map-note{font-size:12px;color:var(--muted);padding:8px 12px}
+.actions{display:flex;gap:9px;padding:13px;flex-wrap:wrap}
+button{border:0;border-radius:12px;padding:12px 15px;font-weight:700;font-size:14px;cursor:pointer}
+.primary{background:var(--purple);color:#fff}.secondary{background:#fff2c6;color:#49217a;border:1px solid var(--yellow)}
+button:disabled{opacity:.55;cursor:wait}
+.info{padding:15px}.hint{font-size:13px;color:var(--muted);margin:0 0 12px}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat{background:#f7f3fb;border-radius:12px;padding:12px 9px;text-align:center}
+.stat small{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:20px;margin-top:4px}
+.fare{background:#f0e3fb;border-radius:14px;padding:13px;margin-top:12px;display:flex;justify-content:space-between;align-items:center}
+.fare strong{font-size:24px;color:var(--green)}
+#message{font-size:13px;color:var(--muted);padding:0 15px 14px;min-height:18px}
+.footer{font-size:12px;color:var(--muted);text-align:center;padding:10px}
+@media(max-width:480px){#map{height:350px}.stats{grid-template-columns:1fr 1fr}.stat:last-child{grid-column:span 2}.brand{font-size:24px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">🛵 Swift<span>Deliver</span></div>
+  <div class="tag">Fast • Reliable • Kitui</div>
+</header>
+<main>
+  <div class="status"><span class="dot"></span><div><b>Plan your delivery</b><div style="font-size:13px;color:#42624d">Set your pickup and destination on the map</div></div></div>
+  <section class="panel">
+    <div id="map" aria-label="Map of Kitui"></div>
+    <div class="map-note">Map data © OpenStreetMap contributors. Tap the map to set your drop-off point.</div>
+    <div class="actions">
+      <button class="primary" id="gps">Use my GPS as pickup</button>
+      <button class="secondary" id="reset">Reset map</button>
+    </div>
+    <div id="message" role="status">Starting in Kitui. Tap “Use my GPS as pickup”, then tap the map to choose a destination.</div>
+  </section>
+  <section class="panel info">
+    <p class="hint">Illustrative pilot rates: base KSh 50 + KSh 25/km + KSh 10/min. Confirm final pricing before launch.</p>
+    <div class="stats">
+      <div class="stat"><small>Road distance</small><strong id="distance">— km</strong></div>
+      <div class="stat"><small>Estimated time</small><strong id="duration">— min</strong></div>
+      <div class="stat"><small>Delivery estimate</small><strong id="fare">KSh —</strong></div>
+    </div>
+    <div class="fare"><div><b>Estimated delivery fee</b><div style="font-size:12px;color:#62556c">Calculated from route distance and time</div></div><strong id="total">KSh —</strong></div>
+  </section>
+  <div class="footer">Demo only — GPS and routing require an internet connection. Not a live dispatch or payment system.</div>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const kitui=[-1.3667,38.0106];
+const map=L.map('map').setView(kitui,14);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+let pickup=null,dropoff=null,pickMarker=null,dropMarker=null,routeLayer=null;
+const msg=document.getElementById('message');
+function say(t){msg.textContent=t}
+function clearRoute(){if(routeLayer){map.removeLayer(routeLayer);routeLayer=null}}
+function setPickup(latlng){
+ pickup=latlng;
+ if(pickMarker)map.removeLayer(pickMarker);
+ pickMarker=L.marker(latlng).addTo(map).bindPopup('SwiftDeliver pickup');
+ updateRoute();
+}
+function setDropoff(latlng){
+ dropoff=latlng;
+ if(dropMarker)map.removeLayer(dropMarker);
+ dropMarker=L.marker(latlng).addTo(map).bindPopup('Delivery destination');
+ updateRoute();
+}
+map.on('click',e=>{
+ if(!pickup){setPickup(e.latlng);say('Pickup set. Tap the map again to choose your destination.');}
+ else {setDropoff(e.latlng);say('Destination set. Calculating the road route…');}
+});
+async function updateRoute(){
+ if(!pickup||!dropoff)return;
+ clearRoute();
+ const coords=`${pickup.lng},${pickup.lat};${dropoff.lng},${dropoff.lat}`;
+ const url=`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+ try{
+  const response=await fetch(url);
+  if(!response.ok)throw new Error('Routing service unavailable');
+  const data=await response.json();
+  if(data.code!=='Ok'||!data.routes.length)throw new Error('No route found for these points');
+  const r=data.routes[0],km=r.distance/1000,mins=r.duration/60;
+  routeLayer=L.geoJSON(r.geometry,{style:{color:'#1769e0',weight:6,opacity:.9}}).addTo(map);
+  map.fitBounds(routeLayer.getBounds(),{padding:[28,28]});
+  const fare=Math.round((50+25*km+10*mins)/5)*5;
+  document.getElementById('distance').textContent=km.toFixed(1)+' km';
+  document.getElementById('duration').textContent=Math.round(mins)+' min';
+  document.getElementById('fare').textContent='KSh '+fare;
+  document.getElementById('total').textContent='KSh '+fare;
+  say('Route calculated. This is an estimate; actual road conditions and final pricing may differ.');
+ }catch(err){say(err.message+'. Try choosing points closer to Kitui town.');}
+}
+document.getElementById('gps').addEventListener('click',()=>{
+ if(!navigator.geolocation){say('This browser does not support GPS location.');return;}
+ say('Requesting your location…');
+ navigator.geolocation.getCurrentPosition(pos=>{
+  const ll=L.latLng(pos.coords.latitude,pos.coords.longitude);
+  setPickup(ll);map.setView(ll,16);
+  say('Your GPS position is set as pickup. Tap the map to choose a destination.');
+ },err=>say('Could not get GPS. Allow location permission and use this page over HTTPS or localhost.'),{enableHighAccuracy:true,timeout:15000});
+});
+document.getElementById('reset').addEventListener('click',()=>{
+ pickup=dropoff=null;[pickMarker,dropMarker,routeLayer].forEach(x=>{if(x)map.removeLayer(x)});
+ pickMarker=dropMarker=routeLayer=null;
+ ['distance','duration'].forEach(id=>document.getElementById(id).textContent='—');
+ ['fare','total'].forEach(id=>document.getElementById(id).textContent='KSh —');
+ map.setView(kitui,14);say('Map reset. Set your pickup, then tap to choose a destination.');
+});
+</script>
+</body>
+</html>
