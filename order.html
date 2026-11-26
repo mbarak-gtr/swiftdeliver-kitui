@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SwiftDeliver | Order in Kitui</title>
+<style>
+:root{--purple:#55139b;--purple2:#7416b7;--yellow:#ffc928;--green:#159447;--ink:#21182c;--muted:#746d7c;--bg:#f6f3f9}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:linear-gradient(115deg,#3d0878,#7416b7);color:white;padding:18px 18px 22px}
+.top{display:flex;align-items:center;justify-content:space-between;max-width:900px;margin:auto}
+.brand{font-size:25px;font-weight:850;letter-spacing:-.8px}.brand span{color:var(--yellow)}
+.pill{border:1px solid #ffffff66;border-radius:30px;padding:7px 11px;font-size:12px}
+.hero{max-width:900px;margin:20px auto 0}.hero h1{font-size:25px;margin:0 0 5px}.hero p{margin:0;color:#eee0ff;font-size:14px}
+main{max-width:900px;margin:16px auto;padding:0 12px}
+.location{background:white;border-radius:15px;padding:13px 15px;display:flex;gap:11px;align-items:center;box-shadow:0 3px 14px #2410350d;margin-bottom:14px}
+.pin{width:38px;height:38px;border-radius:12px;background:#eee2fa;display:grid;place-items:center;font-size:19px}
+.location small{color:var(--muted);display:block}.location strong{font-size:14px}
+.tabs{display:flex;gap:8px;overflow:auto;padding:2px 0 12px}
+.tab{white-space:nowrap;border:1px solid #e5dbea;background:#fff;color:#4d4058;border-radius:30px;padding:10px 15px;font-weight:700}
+.tab.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.section-title{display:flex;align-items:end;justify-content:space-between;margin:8px 2px 12px}.section-title h2{font-size:19px;margin:0}.section-title small{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.item{background:white;border-radius:16px;padding:12px;box-shadow:0 3px 14px #2410350b;display:flex;flex-direction:column;min-height:184px}
+.emoji{height:66px;border-radius:12px;background:#f4edf9;display:grid;place-items:center;font-size:36px;margin-bottom:10px}
+.item h3{font-size:15px;margin:0 0 3px}.item p{font-size:12px;color:var(--muted);margin:0 0 10px;flex:1}
+.item-bottom{display:flex;align-items:center;justify-content:space-between;gap:6px}.price{font-weight:800;color:var(--purple)}
+.add{background:var(--purple);color:white;border:0;border-radius:10px;padding:8px 12px;font-weight:800}
+.card{background:white;border-radius:17px;padding:15px;margin-top:15px;box-shadow:0 3px 14px #2410350b}
+.card h2{font-size:18px;margin:0 0 12px}
+.cart-empty{color:var(--muted);font-size:14px}
+.cart-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #eee8f2;font-size:14px}
+.qty{display:flex;align-items:center;gap:8px}.qty button{border:0;background:#eee2fa;color:var(--purple);border-radius:8px;width:26px;height:26px;font-weight:800}
+.total{display:flex;justify-content:space-between;font-weight:850;font-size:18px;padding-top:12px}
+label{font-size:13px;font-weight:700;display:block;margin:11px 0 5px}
+input,select,textarea{width:100%;border:1px solid #ded5e6;border-radius:11px;padding:12px;font:inherit;background:#fff;color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+.payments{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pay{border:1px solid #ded5e6;border-radius:11px;padding:11px;background:#fff;font-size:13px}
+.pay input{width:auto;margin-right:6px}
+.submit{width:100%;border:0;border-radius:13px;background:var(--green);color:white;padding:14px;font-size:16px;font-weight:850;margin-top:14px}
+.note{font-size:12px;color:var(--muted);line-height:1.5;margin:10px 0 0}
+#confirmation{display:none;background:#e7f7ed;border:1px solid #bfe7cd;border-radius:13px;padding:13px;margin-top:12px;color:#145d30}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+@media(min-width:650px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.hero h1{font-size:30px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="top"><div class="brand">🛵 Swift<span>Deliver</span></div><div class="pill">KITUI, KENYA</div></div>
+ <div class="hero"><h1>What would you like delivered?</h1><p>Food, groceries and parcels — delivered around Kitui.</p></div>
+</header>
+<main>
+ <div class="location"><div class="pin">📍</div><div><small>Delivering in</small><strong>Kitui, Kenya · Enter your exact address at checkout</strong></div></div>
+ <div class="tabs" role="tablist">
+  <button class="tab active" data-category="food">🍔 Food</button>
+  <button class="tab" data-category="grocery">🛒 Groceries</button>
+  <button class="tab" data-category="parcel">📦 Parcels</button>
+ </div>
+ <div class="section-title"><h2 id="heading">Popular food</h2><small>Sample pilot catalogue</small></div>
+ <div class="grid" id="products"></div>
+ <section class="card">
+  <h2>🧺 Your basket <span id="count" style="color:#746d7c;font-size:13px;font-weight:500">(0 items)</span></h2>
+  <div id="cart"><p class="cart-empty">Your basket is empty. Add something you love.</p></div>
+  <div class="total"><span>Items total</span><span id="subtotal">KSh 0</span></div>
+  <p class="note">Delivery fee is calculated separately using your route and the SwiftDeliver pilot rate: KSh 50 for the first 2.3 km, then KSh 27 per additional km.</p>
+ </section>
+ <section class="card">
+  <h2>🚚 Delivery details</h2>
+  <label for="customer">Your name</label><input id="customer" placeholder="Enter your name" autocomplete="name">
+  <label for="phone">Phone number</label><input id="phone" type="tel" placeholder="e.g. 07XX XXX XXX" autocomplete="tel">
+  <label for="address">Delivery address / landmark</label><textarea id="address" placeholder="Estate, street, building or nearby landmark in Kitui"></textarea>
+  <label>Preferred payment method</label>
+  <div class="payments">
+   <label class="pay"><input type="radio" name="payment" value="M-Pesa" checked>M-Pesa</label>
+   <label class="pay"><input type="radio" name="payment" value="Cash on Delivery">Cash on Delivery</label>
+   <label class="pay"><input type="radio" name="payment" value="Airtel Money">Airtel Money</label>
+   <label class="pay"><input type="radio" name="payment" value="Card">Card</label>
+  </div>
+  <button class="submit" id="place">Place demo order</button>
+  <div id="confirmation" role="status"></div>
+  <p class="note">Demo only: this page does not send orders to SwiftDeliver staff or process M-Pesa, Airtel Money or card payments. Product names and prices are sample placeholders; confirm partner shops and prices before launch.</p>
+ </section>
+</main>
+<footer>SwiftDeliver · Fast • Reliable • Kitui</footer>
+<script>
+const catalog={
+ food:[
+  {id:'f1',name:'Chips',desc:'Freshly fried potato chips',price:150,emoji:'🍟'},
+  {id:'f2',name:'Chicken and chips',desc:'A filling meal',price:350,emoji:'🍗'},
+  {id:'f3',name:'Beef burger',desc:'Classic burger',price:300,emoji:'🍔'},
+  {id:'f4',name:'Pilau',desc:'Spiced rice meal',price:250,emoji:'🍛'},
+  {id:'f5',name:'Samosas (2)',desc:'Crispy snack',price:80,emoji:'🥟'},
+  {id:'f6',name:'Fresh juice',desc:'Seasonal fruit juice',price:120,emoji:'🧃'}
+ ],
+ grocery:[
+  {id:'g1',name:'Milk 500 ml',desc:'Everyday essential',price:65,emoji:'🥛'},
+  {id:'g2',name:'Bread',desc:'Fresh loaf',price:70,emoji:'🍞'},
+  {id:'g3',name:'Eggs (tray)',desc:'30 eggs',price:480,emoji:'🥚'},
+  {id:'g4',name:'Rice 1 kg',desc:'Pantry staple',price:180,emoji:'🍚'},
+  {id:'g5',name:'Cooking oil 1 L',desc:'Kitchen essential',price:260,emoji:'🫗'},
+  {id:'g6',name:'Tomatoes 1 kg',desc:'Fresh produce',price:100,emoji:'🍅'}
+ ],
+ parcel:[
+  {id:'p1',name:'Small document',desc:'Envelope-sized parcel',price:100,emoji:'✉️'},
+  {id:'p2',name:'Small package',desc:'Compact parcel',price:150,emoji:'📦'},
+  {id:'p3',name:'Medium package',desc:'Medium-sized parcel',price:250,emoji:'🛍️'}
+ ]
+};
+let category='food',cart={};
+const fmt=n=>'KSh '+n.toLocaleString('en-KE');
+function renderProducts(){
+ const names={food:'Popular food',grocery:'Popular groceries',parcel:'Parcel delivery'};
+ document.getElementById('heading').textContent=names[category];
+ document.getElementById('products').innerHTML=catalog[category].map(p=>`<article class="item"><div class="emoji">${p.emoji}</div><h3>${p.name}</h3><p>${p.desc}</p><div class="item-bottom"><span class="price">${fmt(p.price)}</span><button class="add" data-add="${p.id}">+ Add</button></div></article>`).join('');
+}
+function allItems(){return Object.values(catalog).flat()}
+function renderCart(){
+ const entries=Object.entries(cart).filter(([id,q])=>q>0);
+ const count=entries.reduce((s,[id,q])=>s+q,0);
+ const subtotal=entries.reduce((s,[id,q])=>s+allItems().find(p=>p.id===id).price*q,0);
+ document.getElementById('count').textContent=`(${count} item${count===1?'':'s'})`;
+ document.getElementById('subtotal').textContent=fmt(subtotal);
+ document.getElementById('cart').innerHTML=entries.length?entries.map(([id,q])=>{const p=allItems().find(x=>x.id===id);return `<div class="cart-row"><div>${p.emoji} ${p.name}<br><b>${fmt(p.price*q)}</b></div><div class="qty"><button data-minus="${id}">−</button><b>${q}</b><button data-plus="${id}">+</button></div></div>`}).join(''):'<p class="cart-empty">Your basket is empty. Add something you love.</p>';
+}
+document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-category]');if(!b)return;category=b.dataset.category;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));renderProducts()});
+document.getElementById('products').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(!b)return;cart[b.dataset.add]=(cart[b.dataset.add]||0)+1;renderCart()});
+document.getElementById('cart').addEventListener('click',e=>{const plus=e.target.closest('[data-plus]'),minus=e.target.closest('[data-minus]');if(plus)cart[plus.dataset.plus]=(cart[plus.dataset.plus]||0)+1;if(minus){cart[minus.dataset.minus]--;if(cart[minus.dataset.minus]<=0)delete cart[minus.dataset.minus]}renderCart()});
+document.getElementById('place').addEventListener('click',()=>{
+ const name=document.getElementById('customer').value.trim(),phone=document.getElementById('phone').value.trim(),address=document.getElementById('address').value.trim();
+ const entries=Object.entries(cart).filter(([id,q])=>q>0);
+ if(!entries.length){alert('Please add at least one item to your basket.');return}
+ if(!name||!phone||!address){alert('Please enter your name, phone number and delivery address.');return}
+ const subtotal=entries.reduce((s,[id,q])=>s+allItems().find(p=>p.id===id).price*q,0);
+ const payment=document.querySelector('input[name="payment"]:checked').value;
+ const order='SD-'+Math.random().toString(36).slice(2,8).toUpperCase();
+ const box=document.getElementById('confirmation');box.style.display='block';
+ box.innerHTML=`<b>Demo order created: ${order}</b><br>Thank you, ${name}. Items total: ${fmt(subtotal)}. Payment preference: ${payment}.<br><b>Important:</b> This is only a local demo confirmation. SwiftDeliver has not received this order and no payment has been made.`;
+ box.scrollIntoView({behavior:'smooth',block:'center'});
+});
+renderProducts();renderCart();
+</script>
+</body>
+</html>
