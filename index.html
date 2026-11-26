@@ -49,13 +49,13 @@ button:disabled{opacity:.55;cursor:wait}
     <div id="message" role="status">Starting in Kitui. Tap “Use my GPS as pickup”, then tap the map to choose a destination.</div>
   </section>
   <section class="panel info">
-    <p class="hint">Illustrative pilot rates: base KSh 50 + KSh 25/km + KSh 10/min. Confirm final pricing before launch.</p>
+    <p class="hint">SwiftDeliver pilot pricing: KSh 50 covers the first 2.3 km, then KSh 27 for each additional kilometre. Partial additional kilometres are charged proportionally. Final fare is rounded to the nearest KSh 5.</p>
     <div class="stats">
       <div class="stat"><small>Road distance</small><strong id="distance">— km</strong></div>
       <div class="stat"><small>Estimated time</small><strong id="duration">— min</strong></div>
       <div class="stat"><small>Delivery estimate</small><strong id="fare">KSh —</strong></div>
     </div>
-    <div class="fare"><div><b>Estimated delivery fee</b><div style="font-size:12px;color:#62556c">Calculated from route distance and time</div></div><strong id="total">KSh —</strong></div>
+    <div class="fare"><div><b>Estimated delivery fee</b><div style="font-size:12px;color:#62556c">KSh 50 up to 2.3 km + KSh 27/km beyond</div></div><strong id="total">KSh —</strong></div>
   </section>
   <div class="footer">Demo only — GPS and routing require an internet connection. Not a live dispatch or payment system.</div>
 </main>
@@ -97,12 +97,13 @@ async function updateRoute(){
   const r=data.routes[0],km=r.distance/1000,mins=r.duration/60;
   routeLayer=L.geoJSON(r.geometry,{style:{color:'#1769e0',weight:6,opacity:.9}}).addTo(map);
   map.fitBounds(routeLayer.getBounds(),{padding:[28,28]});
-  const fare=Math.round((50+25*km+10*mins)/5)*5;
+  const rawFare=50+Math.max(0,km-2.3)*27;
+  const fare=Math.round(rawFare/5)*5;
   document.getElementById('distance').textContent=km.toFixed(1)+' km';
   document.getElementById('duration').textContent=Math.round(mins)+' min';
   document.getElementById('fare').textContent='KSh '+fare;
   document.getElementById('total').textContent='KSh '+fare;
-  say('Route calculated. This is an estimate; actual road conditions and final pricing may differ.');
+  say('Route calculated. Estimated fare: KSh '+fare+'. Actual road conditions and final pricing may differ.');
  }catch(err){say(err.message+'. Try choosing points closer to Kitui town.');}
 }
 document.getElementById('gps').addEventListener('click',()=>{
