@@ -72,6 +72,20 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
   <label for="phone">Phone number</label><input id="phone" type="tel" placeholder="e.g. 07XX XXX XXX" autocomplete="tel">
   <label for="address">Delivery address / landmark</label><textarea id="address" placeholder="Estate, street, building or nearby landmark in Kitui"></textarea>
   <label>Preferred payment method</label>
+  <label>Pin your delivery location</label>
+
+<div id="deliveryMap" style="height:300px;width:100%;border-radius:12px;margin:10px 0;"></div>
+
+<button type="button" id="useMyLocation">
+  📍 Use my current location
+</button>
+
+<p id="locationStatus">
+  Move the map pin to your exact delivery location.
+</p>
+
+<input type="hidden" id="deliveryLat">
+<input type="hidden" id="deliveryLng">
   <select id="payment">
   <option value="">Select payment method</option>
   <option value="M-Pesa">M-Pesa</option>
