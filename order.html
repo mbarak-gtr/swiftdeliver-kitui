@@ -164,6 +164,87 @@ document.getElementById('place').addEventListener('click',()=>{
  box.innerHTML=`<b>Demo order created: ${order}</b><br>Thank you, ${name}. Items total: ${fmt(subtotal)}. Payment preference: ${payment}.<br><b>Important:</b> This is only a local demo confirmation. SwiftDeliver has not received this order and no payment has been made.`;
  box.scrollIntoView({behavior:'smooth',block:'center'});
 });
+ // SwiftDeliver delivery map
+const pickup = [-1.3667, 38.0106];
+
+const map = L.map('deliveryMap').setView(pickup, 14);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+
+const pickupMarker = L.marker(pickup).addTo(map)
+  .bindPopup('SwiftDeliver pickup point');
+
+const deliveryStart = [-1.3667, 38.0196];
+
+const deliveryMarker = L.marker(deliveryStart, {
+  draggable: true
+}).addTo(map).bindPopup('Your delivery location');
+
+let routeLine;
+
+async function updateDeliveryDistance() {
+  const destination = deliveryMarker.getLatLng();
+
+  document.getElementById('deliveryLat').value = destination.lat;
+  document.getElementById('deliveryLng').value = destination.lng;
+
+  const status = document.getElementById('locationStatus');
+  status.textContent = 'Calculating delivery distance...';
+
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${pickup[1]},${pickup[0]};${destination.lng},${destination.lat}?overview=false`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.routes || !data.routes.length) {
+      throw new Error('Route unavailable');
+    }
+
+    const km = data.routes[0].distance / 1000;
+    const rawFee = 50 + Math.max(0, km - 2.3) * 27;
+    const fee = Math.round(rawFee / 5) * 5;
+
+    status.textContent =
+      `Distance: ${km.toFixed(2)} km | Delivery fee: KSh ${fee}`;
+
+  } catch (error) {
+    status.textContent =
+      'Could not calculate distance. Please move the pin or try again.';
+  }
+}
+
+deliveryMarker.on('dragend', updateDeliveryDistance);
+
+document.getElementById('useMyLocation').addEventListener('click', () => {
+  if (!navigator.geolocation) {
+    alert('Location is not supported by this browser.');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    position => {
+      const point = [
+        position.coords.latitude,
+        position.coords.longitude
+      ];
+
+      deliveryMarker.setLatLng(point);
+      map.setView(point, 16);
+      updateDeliveryDistance();
+    },
+    () => alert('Please allow location access and try again.')
+  );
+});
+
+map.fitBounds([
+  pickup,
+  deliveryStart
+]);
+
+updateDeliveryDistance();
 renderProducts();renderCart();
 </script>
 </body>
