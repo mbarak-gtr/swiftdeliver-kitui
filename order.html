@@ -72,6 +72,11 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
   <label for="phone">Phone number</label><input id="phone" type="tel" placeholder="e.g. 07XX XXX XXX" autocomplete="tel">
   <label for="address">Delivery address / landmark</label><textarea id="address" placeholder="Estate, street, building or nearby landmark in Kitui"></textarea>
   <label>Preferred payment method</label>
+  <select id="payment">
+  <option value="">Select payment method</option>
+  <option value="M-Pesa">M-Pesa</option>
+  <option value="Cash">Cash on Delivery</option>
+  </select>
   <div class="payments">
    <label class="pay"><input type="radio" name="payment" value="M-Pesa" checked>M-Pesa</label>
    <label class="pay"><input type="radio" name="payment" value="Cash on Delivery">Cash on Delivery</label>
